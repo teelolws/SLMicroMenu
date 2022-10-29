@@ -1,0 +1,7 @@
+## Interface: 100000
+## Author: Teelo
+## Title: Shadowlands Micro Menu
+## Version: 10.0-001
+## X-Curse-Project-ID: 694767
+
+SLMicroMenu.lua
