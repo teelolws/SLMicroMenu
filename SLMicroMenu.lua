@@ -1,4 +1,9 @@
- if not (GetBuildInfo() == "10.0.0") then return end -- force update every patch incase of UI changes that cause problems and/or make this addon redundant!
+if not (GetBuildInfo() == "10.0.0") then return end -- force update every patch incase of UI changes that cause problems and/or make this addon redundant!
+
+if not SLMicroMenuDB then SLMicroMenuDB = {} end
+if not SLMicroMenuDB.EMEDB then SLMicroMenuDB.EMEDB = {} end
+local lib = LibStub:GetLibrary("EditModeExpanded-1.0")
+lib:RegisterFrame(MicroButtonAndBagsBar, "Menu Bar", SLMicroMenuDB.EMEDB)
 
 local prefix = "hud-microbutton-";
 	

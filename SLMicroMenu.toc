@@ -3,5 +3,8 @@
 ## Title: Shadowlands Micro Menu
 ## Version: 10.0-001
 ## X-Curse-Project-ID: 694767
+## SavedVariables: SLMicroMenuDB
 
+libs\LibStub.lua
+libs\EditModeExpanded-1.0\EditModeExpanded-1.0.lua
 SLMicroMenu.lua
