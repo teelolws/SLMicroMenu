@@ -8,6 +8,10 @@ f:SetScript("OnEvent", function(self, event, arg1)
         if not SLMicroMenuDB then SLMicroMenuDB = {} end
         if not SLMicroMenuDB.EMEDB then SLMicroMenuDB.EMEDB = {} end
         lib:RegisterFrame(MicroButtonAndBagsBar, "Menu Bar", SLMicroMenuDB.EMEDB)
+        lib:RegisterResizable(MicroButtonAndBagsBarMovable)
+        lib:RegisterResizable(EditModeExpandedBackpackBar)
+        lib:RegisterHideable(MicroButtonAndBagsBarMovable)
+        lib:RegisterHideable(EditModeExpandedBackpackBar)
     end
 end)
 
