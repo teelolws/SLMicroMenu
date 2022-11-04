@@ -108,7 +108,7 @@ MainMenuMicroButton:HookScript("OnUpdate", function(self, elapsed)
     	end
     	MainMenuBarDownload:Show();
     end
-        self:SetHighlightAtlas("hud-microbutton-highlight")
+    self:SetHighlightAtlas("hud-microbutton-highlight")
 end)
 
 CreateFrame("Frame", "GuildMicroButtonTabard", GuildMicroButton)
