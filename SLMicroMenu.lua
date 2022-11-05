@@ -7,11 +7,13 @@ f:SetScript("OnEvent", function(self, event, arg1)
     if (event == "ADDON_LOADED") and (arg1 == "SLMicroMenu") then
         if not SLMicroMenuDB then SLMicroMenuDB = {} end
         if not SLMicroMenuDB.EMEDB then SLMicroMenuDB.EMEDB = {} end
-        lib:RegisterFrame(MicroButtonAndBagsBar, "Menu Bar", SLMicroMenuDB.EMEDB)
-        lib:RegisterResizable(MicroButtonAndBagsBarMovable)
-        lib:RegisterResizable(EditModeExpandedBackpackBar)
-        lib:RegisterHideable(MicroButtonAndBagsBarMovable)
-        lib:RegisterHideable(EditModeExpandedBackpackBar)
+        if not IsAddOnLoaded("Bartender4") then -- moving/resizing found to be incompatible
+            lib:RegisterFrame(MicroButtonAndBagsBar, "Menu Bar", SLMicroMenuDB.EMEDB)
+            lib:RegisterResizable(MicroButtonAndBagsBarMovable)
+            lib:RegisterResizable(EditModeExpandedBackpackBar)
+            lib:RegisterHideable(MicroButtonAndBagsBarMovable)
+            lib:RegisterHideable(EditModeExpandedBackpackBar)
+        end
     end
 end)
 
