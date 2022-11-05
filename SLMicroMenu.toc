@@ -1,7 +1,7 @@
 ## Interface: 100000
 ## Author: Teelo
 ## Title: Shadowlands Micro Menu
-## Version: 10.0-005
+## Version: 10.0-006
 ## X-Curse-Project-ID: 694767
 ## SavedVariablesPerCharacter: SLMicroMenuDB
 
