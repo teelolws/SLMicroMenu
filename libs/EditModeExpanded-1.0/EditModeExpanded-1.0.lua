@@ -1,5 +1,5 @@
 local CURRENT_BUILD = "10.0.0"
-local MAJOR, MINOR = "EditModeExpanded-1.0", 7
+local MAJOR, MINOR = "EditModeExpanded-1.0", 9
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
@@ -9,6 +9,8 @@ local frames = {}
 local framesDB = {}
 local framesDialogs = {}
 local framesDialogsKeys = {}
+
+local ENUM_EDITMODEACTIONBARSETTING_HIDEABLE = 10 -- Enum.EditModeActionBarSetting.Hideable = 10
 
 -- run OnLoad the first time RegisterFrame is called by an addon
 local f = {}
@@ -159,12 +161,44 @@ function lib:RegisterFrame(frame, name, db)
 	frame.Selection:SetLabelText(frame.systemName);
 	frame:SetupSettingsDialogAnchor();
 	frame.snappedFrames = {};
-
+    frame.Selection:EnableKeyboard();
+    frame.Selection:SetPropagateKeyboardInput(true);
+    
     function frame.UpdateMagnetismRegistration() end
 
     frame.Selection:SetScript("OnMouseDown", function()
     	frame:SelectSystem()
     end)
+
+    frame.Selection:SetScript("OnKeyDown", function(self, key)
+        frame:MoveWithArrowKey(key);
+    end)
+
+    function frame:MoveWithArrowKey(key)
+        if self.isSelected then
+            x, y = self:GetRect();
+
+            local new_x = x;
+            local new_y = y;
+
+            if key == "RIGHT" then      new_x = new_x + 1;
+            elseif key == "LEFT" then   new_x = new_x - 1;
+            elseif key == "UP" then     new_y = new_y + 1;
+            elseif key == "DOWN" then   new_y = new_y - 1;
+            end
+            
+            if new_x ~= x or new_y ~= y then
+                -- consume the key used to prevent movement / cam turning
+                self.Selection:SetPropagateKeyboardInput(false);
+                db.x, db.y = new_x, new_y;
+                self:ClearAllPoints();
+                self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", db.x, db.y);
+                return
+            end
+        end
+
+        self.Selection:SetPropagateKeyboardInput(true);
+    end
     
     function frame:SelectSystem()
         if not self.isSelected then
@@ -206,6 +240,17 @@ function lib:RegisterFrame(frame, name, db)
 
     EditModeManagerExpandedFrame.AccountSettings[frame.system] = CreateFrame("CheckButton", nil, EditModeManagerExpandedFrame.AccountSettings, "UICheckButtonTemplate")
     local checkButtonFrame = EditModeManagerExpandedFrame.AccountSettings[frame.system]
+    local resetButton = CreateFrame("Button", nil, EditModeManagerFrame, "UIPanelButtonTemplate")
+    resetButton:SetText(RESET)
+    resetButton:SetPoint("TOPLEFT", checkButtonFrame.Text, "TOPRIGHT", 5, 1)
+    resetButton:SetScript("OnClick", function()
+        frame:SetScale(1)
+        frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", db.defaultX, db.defaultY)
+        db.x = db.defaultX
+        db.y = db.defaultY
+        if not db.settings then db.settings = {} end
+        db.settings[Enum.EditModeUnitFrameSetting.FrameSize] = 100
+    end)
     
     checkButtonFrame:SetScript("OnClick", function(self)
         local isChecked = self:GetChecked()
@@ -257,6 +302,9 @@ function lib:RegisterFrame(frame, name, db)
     	end
     end
     
+    db.defaultScale = frame:GetScale()
+    db.defaultX, db.defaultY = frame:GetRect()
+    
     if db.settings and db.settings[Enum.EditModeUnitFrameSetting.FrameSize] then
         frame:SetScaleOverride(db.settings[Enum.EditModeUnitFrameSetting.FrameSize]/100)
     end
@@ -268,8 +316,8 @@ function lib:RegisterFrame(frame, name, db)
         db.x, db.y = frame:GetRect()
     end
     
-    if db.settings and (db.settings[Enum.EditModeActionBarSetting.Hideable] ~= nil) then
-        frame:SetShown(framesDB[frame.system].settings[Enum.EditModeActionBarSetting.Hideable] ~= 1)
+    if db.settings and (db.settings[ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] ~= nil) then
+        frame:SetShown(framesDB[frame.system].settings[ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] ~= 1)
     end
 end
 
@@ -346,8 +394,8 @@ hooksecurefunc(EditModeManagerFrame, "ExitEditMode", function()
         frame:StopMovingOrSizing();
         
         frame:SetShown(wasVisible[frame.system])
-        if framesDB[frame.system] and framesDB[frame.system].settings and (framesDB[frame.system].settings[Enum.EditModeActionBarSetting.Hideable] ~= nil) then
-            frame:SetShown(framesDB[frame.system].settings[Enum.EditModeActionBarSetting.Hideable] ~= 1)
+        if framesDB[frame.system] and framesDB[frame.system].settings and (framesDB[frame.system].settings[ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] ~= nil) then
+            frame:SetShown(framesDB[frame.system].settings[ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] ~= 1)
         end
         
         if originalSize[frame.system] then
@@ -508,7 +556,7 @@ hooksecurefunc(f, "OnLoad", function()
                     	settingFrame.cbrHandles:RegisterCallback(settingFrame.Slider, MinimalSliderWithSteppersMixin.Event.OnValueChanged, OnValueChanged, settingFrame);
                     end
                     
-                    if displayInfo.setting == Enum.EditModeActionBarSetting.Hideable then
+                    if displayInfo.setting == ENUM_EDITMODEACTIONBARSETTING_HIDEABLE then
                         savedValue = framesDB[EditModeExpandedSystemSettingsDialog.attachedToSystem.system].settings[displayInfo.setting]
                         if savedValue == nil then savedValue = 0 end
                         settingFrame.Button:SetChecked(savedValue)
@@ -563,16 +611,15 @@ function lib:RegisterResizable(frame)
 			formatter = showAsPercentage,
 		})
 end
-
-Enum.EditModeActionBarSetting.Hideable = 10 
+ 
 function lib:RegisterHideable(frame)
     if not framesDialogs[frame.system] then framesDialogs[frame.system] = {} end
-    if framesDialogsKeys[frame.system] and framesDialogsKeys[frame.system][Enum.EditModeActionBarSetting.Hideable] then return end
+    if framesDialogsKeys[frame.system] and framesDialogsKeys[frame.system][ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] then return end
     if not framesDialogsKeys[frame.system] then framesDialogsKeys[frame.system] = {} end
-    framesDialogsKeys[frame.system][Enum.EditModeActionBarSetting.Hideable] = true
+    framesDialogsKeys[frame.system][ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] = true
     table.insert(framesDialogs[frame.system],
         {
-            setting = Enum.EditModeActionBarSetting.Hideable,
+            setting = ENUM_EDITMODEACTIONBARSETTING_HIDEABLE,
             name = "Hide",
             type = Enum.EditModeSettingDisplayType.Checkbox,
     })
