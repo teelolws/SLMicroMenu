@@ -1,5 +1,5 @@
 local CURRENT_BUILD = "10.0.0"
-local MAJOR, MINOR = "EditModeExpanded-1.0", 9
+local MAJOR, MINOR = "EditModeExpanded-1.0", 12
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
@@ -245,11 +245,22 @@ function lib:RegisterFrame(frame, name, db)
     resetButton:SetPoint("TOPLEFT", checkButtonFrame.Text, "TOPRIGHT", 5, 1)
     resetButton:SetScript("OnClick", function()
         frame:SetScale(1)
-        frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", db.defaultX, db.defaultY)
+        if not pcall( function() frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", db.defaultX, db.defaultY) end ) then
+            -- need a better solution here
+            frame:SetPoint("BOTTOMLEFT", nil, "BOTTOMLEFT", db.defaultX, db.defaultY)
+        end
         db.x = db.defaultX
         db.y = db.defaultY
         if not db.settings then db.settings = {} end
         db.settings[Enum.EditModeUnitFrameSetting.FrameSize] = 100
+    end)
+    
+    EditModeManagerExpandedFrame:HookScript("OnHide", function()
+        resetButton:Hide()
+    end)
+    
+    EditModeManagerExpandedFrame:HookScript("OnShow", function()
+        resetButton:Show()
     end)
     
     checkButtonFrame:SetScript("OnClick", function(self)
@@ -310,6 +321,13 @@ function lib:RegisterFrame(frame, name, db)
     end
     
     if db.x and db.y then
+        if frame:GetScale() == 1 then
+            -- if stored coordinates are outside the screen resolution, reset them back to defaults
+            local _, _, screenX, screenY = UIParent:GetRect()
+            if (db.x < 0) or (db.x >= screenX) or (db.y < 0) or (db.y > screenY) then
+                db.x, db.y = frame:GetRect()
+            end
+        end 
         frame:ClearAllPoints()
         frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", db.x, db.y)
     else
@@ -319,6 +337,12 @@ function lib:RegisterFrame(frame, name, db)
     if db.settings and (db.settings[ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] ~= nil) then
         frame:SetShown(framesDB[frame.system].settings[ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] ~= 1)
     end
+    
+    hooksecurefunc(frame, "AddExtraButtons", function(self)
+        self.resetToDefaultPositionButton:SetOnClickHandler(function()
+            resetButton:Click()
+        end)
+    end)
 end
 
 if not (GetBuildInfo() == CURRENT_BUILD) then return end
@@ -333,7 +357,7 @@ hooksecurefunc(f, "OnLoad", function()
     EditModeManagerExpandedFrame:Hide()
     EditModeManagerExpandedFrame:SetPoint("TOPLEFT", EditModeManagerFrame, "TOPRIGHT", 2, 0)
     EditModeManagerExpandedFrame:SetPoint("BOTTOMLEFT", EditModeManagerFrame, "BOTTOMRIGHT", 2, 0)
-    EditModeManagerExpandedFrame:SetWidth(250)
+    EditModeManagerExpandedFrame:SetWidth(200)
     EditModeManagerExpandedFrame.Title = EditModeManagerExpandedFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightMedium")
     EditModeManagerExpandedFrame.Title:SetPoint("TOP", 0, -15)
     EditModeManagerExpandedFrame.Title:SetText("Expanded")
@@ -342,6 +366,8 @@ hooksecurefunc(f, "OnLoad", function()
     EditModeManagerExpandedFrame.AccountSettings:SetPoint("TOPLEFT", 0, -35)
     EditModeManagerExpandedFrame.AccountSettings:SetPoint("BOTTOMLEFT", 10, 10)
     EditModeManagerExpandedFrame.AccountSettings:SetWidth(200)
+    EditModeManagerExpandedFrame.CloseButton = CreateFrame("Button", nil, EditModeManagerExpandedFrame, "UIPanelCloseButton")
+    EditModeManagerExpandedFrame.CloseButton:SetPoint("TOPRIGHT")
     
     EditModeManagerFrame:HookScript("OnShow", function()
         EditModeManagerExpandedFrame:Show()
@@ -363,6 +389,14 @@ function lib:SetDefaultSize(frame, x, y)
     assert(type(y) == "number")
     
     defaultSize[frame.system] = {["x"] = x, ["y"] = y}
+end
+
+-- call this if the frame needs to be moved back into position at some point after ADDON_LOADED
+function lib:RepositionFrame(frame)
+    local db = framesDB[frame.system]
+    if not pcall( function() frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", db.x or db.defaultX, db.y or db.defaultY) end ) then
+        frame:SetPoint("BOTTOMLEFT", nil, "BOTTOMLEFT", db.x or db.defaultX, db.y or db.defaultY)
+    end
 end
 
 hooksecurefunc(EditModeManagerFrame, "EnterEditMode", function(self)
@@ -467,6 +501,12 @@ hooksecurefunc(f, "OnLoad", function()
     frame:SetScript("OnDragStart", frame.OnDragStart)
     frame:SetScript("OnDragStop", frame.OnDragStop)
     frame:OnLoad()
+    function frame:UpdateSizeAndAnchors(systemFrame)
+    	if systemFrame == self.attachedToSystem then
+            frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 400, 500);
+    		self:Layout();
+    	end
+    end
     
     CreateFrame("Frame", "EditModeExpandedSettingSlider", frame)
     Mixin(EditModeExpandedSettingSlider, EditModeSettingSliderMixin)
