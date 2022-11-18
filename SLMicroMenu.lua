@@ -1,5 +1,10 @@
 if not (GetBuildInfo() == "10.0.2") then return end -- force update every patch incase of UI changes that cause problems and/or make this addon redundant!
 
+local incompatibleAddons = {
+    "Bartender4",
+    "Dominos",
+    }
+
 local lib = LibStub:GetLibrary("EditModeExpanded-1.0")
 local f = CreateFrame("Frame")
 f:RegisterEvent("ADDON_LOADED")
@@ -7,13 +12,17 @@ f:SetScript("OnEvent", function(self, event, arg1)
     if (event == "ADDON_LOADED") and (arg1 == "SLMicroMenu") then
         if not SLMicroMenuDB then SLMicroMenuDB = {} end
         if not SLMicroMenuDB.EMEDB then SLMicroMenuDB.EMEDB = {} end
-        if not IsAddOnLoaded("Bartender4") then -- moving/resizing found to be incompatible
-            lib:RegisterFrame(MicroButtonAndBagsBar, "Menu Bar", SLMicroMenuDB.EMEDB)
-            lib:RegisterResizable(MicroButtonAndBagsBarMovable)
-            lib:RegisterResizable(EditModeExpandedBackpackBar)
-            lib:RegisterHideable(MicroButtonAndBagsBarMovable)
-            lib:RegisterHideable(EditModeExpandedBackpackBar)
-        end
+        
+        -- moving/resizing found to be incompatible
+        for _, addon in pairs(incompatibleAddons) do
+            if IsAddOnLoaded(addon) then return end
+        end 
+        
+        lib:RegisterFrame(MicroButtonAndBagsBar, "Menu Bar", SLMicroMenuDB.EMEDB)
+        lib:RegisterResizable(MicroButtonAndBagsBarMovable)
+        lib:RegisterResizable(EditModeExpandedBackpackBar)
+        lib:RegisterHideable(MicroButtonAndBagsBarMovable)
+        lib:RegisterHideable(EditModeExpandedBackpackBar)
     end
 end)
 
