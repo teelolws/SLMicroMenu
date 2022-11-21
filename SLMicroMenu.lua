@@ -1,24 +1,62 @@
 if not (GetBuildInfo() == "10.0.2") then return end -- force update every patch incase of UI changes that cause problems and/or make this addon redundant!
 
+local db
+
 local incompatibleAddons = {
     "Bartender4",
     "Dominos",
     }
 
+local defaults = {
+    global = {
+        EMEOptions = {
+            menu = true,
+        },
+        MicroButtonAndBagsBar = {},
+    }
+}
+
+local options = {
+    type = "group",
+    set = function(info, value) db.global.EMEOptions[info[#info]] = value end,
+    get = function(info) return db.global.EMEOptions[info[#info]] end,
+    args = {
+        menu = {
+            name = "Menu Bar",
+            desc = "Enables / Disables Edit Mode support for the Menu Bar. Disable if you are having compatibility issues with another addon.",
+            type = "toggle",
+        },
+    }
+}
+
 local lib = LibStub:GetLibrary("EditModeExpanded-1.0")
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
+
 local f = CreateFrame("Frame")
 f:RegisterEvent("ADDON_LOADED")
 f:SetScript("OnEvent", function(self, event, arg1)
     if (event == "ADDON_LOADED") and (arg1 == "SLMicroMenu") then
-        if not SLMicroMenuDB then SLMicroMenuDB = {} end
-        if not SLMicroMenuDB.EMEDB then SLMicroMenuDB.EMEDB = {} end
+        db = LibStub("AceDB-3.0"):New("SLMicroMenuDB", defaults)
+        
+        -- backward compatibility
+        if SLMicroMenuDB.EMEDB then
+            db.global.MicroButtonAndBagsBar = SLMicroMenuDB.EMEDB
+            SLMicroMenuDB.EMEDB = nil
+        end
+        -- end backward compatibility
         
         -- moving/resizing found to be incompatible
         for _, addon in pairs(incompatibleAddons) do
             if IsAddOnLoaded(addon) then return end
-        end 
+        end
         
-        lib:RegisterFrame(MicroButtonAndBagsBar, "Menu Bar", SLMicroMenuDB.EMEDB)
+        AceConfigRegistry:RegisterOptionsTable("SLMicroMenu", options)
+        AceConfigDialog:AddToBlizOptions("SLMicroMenu")
+        
+        if not db.global.EMEOptions.menu then return end 
+        
+        lib:RegisterFrame(MicroButtonAndBagsBar, "Menu Bar", db.global.MicroButtonAndBagsBar)
         lib:RegisterResizable(MicroButtonAndBagsBarMovable)
         lib:RegisterResizable(EditModeExpandedBackpackBar)
         lib:RegisterHideable(MicroButtonAndBagsBarMovable)
