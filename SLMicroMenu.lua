@@ -61,6 +61,13 @@ f:SetScript("OnEvent", function(self, event, arg1)
         lib:RegisterResizable(EditModeExpandedBackpackBar)
         lib:RegisterHideable(MicroButtonAndBagsBarMovable)
         lib:RegisterHideable(EditModeExpandedBackpackBar)
+        
+        hooksecurefunc("MoveMicroButtons", function()
+            CharacterMicroButton:ClearAllPoints()
+            CharacterMicroButton:SetPoint("BOTTOMLEFT", MicroButtonAndBagsBarMovable, "BOTTOMLEFT", 7, 6)
+            LFDMicroButton:ClearAllPoints()
+            LFDMicroButton:SetPoint("BOTTOMLEFT", GuildMicroButton, "BOTTOMRIGHT", 1, 0)
+        end)
     end
 end)
 
@@ -191,7 +198,7 @@ local function GuildMicroButton_UpdateTabard()
 			-- no need to change disabled texture, should always be available if you're in a guild
 			tabard:Show();
 		end
-		SetSmallGuildTabardTextures("player", tabard.emblem, tabard.background);
+        SetSmallGuildTabardTextures("player", tabard.emblem, tabard.background);
 	else
 		if ( tabard:IsShown() ) then
 			local button = GuildMicroButton;
