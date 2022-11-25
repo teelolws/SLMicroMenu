@@ -179,7 +179,7 @@ GuildMicroButtonTabard.background = GuildMicroButtonTabard:CreateTexture("GuildM
 GuildMicroButtonTabardBackground:SetAtlas("hud-microbutton-Guild-Banner", true)
 GuildMicroButtonTabardBackground:SetPoint("CENTER", 0, 0)
 
-GuildMicroButtonTabard.emblem = GuildMicroButtonTabard:CreateTexture("GuildMicroButtonTabardEmblem", "ARTWORK")
+GuildMicroButtonTabard.emblem = GuildMicroButtonTabard:CreateTexture("GuildMicroButtonTabardEmblem", "OVERLAY")
 GuildMicroButtonTabardEmblem:SetMask("Interface\GuildFrame\GuildEmblems_01")
 GuildMicroButtonTabardEmblem:SetSize(14, 14)
 GuildMicroButtonTabardEmblem:SetPoint("CENTER", 0, 0)
@@ -192,7 +192,7 @@ local function GuildMicroButton_UpdateTabard()
 	local emblemFilename = select(10, GetGuildLogoInfo());
 	if ( emblemFilename ) then
 		if ( not tabard:IsShown() ) then
-			local button = GuildMicroButton;
+            local button = GuildMicroButton;
 			button:SetNormalAtlas("hud-microbutton-Character-Up", true);
 			button:SetPushedAtlas("hud-microbutton-Character-Down", true);
 			-- no need to change disabled texture, should always be available if you're in a guild
