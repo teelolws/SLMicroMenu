@@ -37,15 +37,30 @@ local f = CreateFrame("Frame")
 f:RegisterEvent("ADDON_LOADED")
 f:SetScript("OnEvent", function(self, event, arg1)
     if (event == "ADDON_LOADED") and (arg1 == "SLMicroMenu") then
-        db = LibStub("AceDB-3.0"):New("SLMicroMenuDB", defaults)
+        db = LibStub("AceDB-3.0"):New("SLMicroMenuADB", defaults)
         
-        -- backward compatibility
-        if SLMicroMenuDB.EMEDB then
-            db.global.MicroButtonAndBagsBar = SLMicroMenuDB.EMEDB
-            SLMicroMenuDB.EMEDB = nil
+        --
+        -- Start legacy db import - remove this eventually
+        --
+        local legacydb = LibStub("AceDB-3.0"):New("SLMicroMenuDB", defaults)
+        legacydb = legacydb.global
+        for buttonName, buttonData in pairs(legacydb) do
+            local isEmpty = true
+            if db.global[buttonName] and (type(db.global[buttonName]) == "table") then
+                for k, v in pairs(db.global[buttonName]) do
+                    isEmpty = false
+                    break
+                end
+            end
+            if isEmpty then
+                db.global[buttonName] = buttonData
+                legacydb[buttonName] = nil
+            end
         end
-        -- end backward compatibility
-        
+        --
+        -- End legacy db import
+        --
+
         -- moving/resizing found to be incompatible
         for _, addon in pairs(incompatibleAddons) do
             if IsAddOnLoaded(addon) then return end
