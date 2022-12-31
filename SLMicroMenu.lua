@@ -35,7 +35,9 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 
 local f = CreateFrame("Frame")
 f:RegisterEvent("ADDON_LOADED")
-f:RegisterEvent("TIME_PLAYED_MSG")
+f:RegisterEvent("UNIT_PORTRAIT_UPDATE");
+f:RegisterEvent("PORTRAITS_UPDATED");
+f:RegisterEvent("PLAYER_ENTERING_WORLD")
 f:SetScript("OnEvent", function(self, event, arg1)
     if (event == "ADDON_LOADED") and (arg1 == "SLMicroMenu") then
         db = LibStub("AceDB-3.0"):New("SLMicroMenuADB", defaults)
@@ -125,7 +127,7 @@ end
 replaceAllAtlases()
 
 f:HookScript("OnEvent", function()
-    C_Timer.After(1, replaceAllAtlases)
+    replaceAllAtlases()
 end)
 
 CharacterMicroButton:HookScript("OnEvent", function()
