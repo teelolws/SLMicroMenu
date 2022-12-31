@@ -35,6 +35,7 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 
 local f = CreateFrame("Frame")
 f:RegisterEvent("ADDON_LOADED")
+f:RegisterEvent("TIME_PLAYED_MSG")
 f:SetScript("OnEvent", function(self, event, arg1)
     if (event == "ADDON_LOADED") and (arg1 == "SLMicroMenu") then
         db = LibStub("AceDB-3.0"):New("SLMicroMenuADB", defaults)
@@ -110,16 +111,22 @@ local buttons = {
     {button = MainMenuMicroButton, name = "MainMenu"},
 }
 
-for _, data in pairs(buttons) do
-    replaceAtlases(data.button, data.name)
-end
-
 local texture = CharacterMicroButton:CreateTexture("MicroButtonPortrait", "OVERLAY")
 texture:SetPoint("TOP", 0, -6)
 texture:SetSize(10, 16)
 texture:SetTexCoord(0.2, 0.8, 0.0666, 0.9)
 
-SetPortraitTexture(MicroButtonPortrait, "player")
+local function replaceAllAtlases()
+    for _, data in pairs(buttons) do
+        replaceAtlases(data.button, data.name)
+    end
+    SetPortraitTexture(MicroButtonPortrait, "player")
+end
+replaceAllAtlases()
+
+f:HookScript("OnEvent", function()
+    C_Timer.After(1, replaceAllAtlases)
+end)
 
 CharacterMicroButton:HookScript("OnEvent", function()
     SetPortraitTexture(MicroButtonPortrait, "player")
