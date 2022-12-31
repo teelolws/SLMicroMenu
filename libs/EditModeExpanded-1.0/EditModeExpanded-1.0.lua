@@ -3,7 +3,7 @@
 --
 
 local CURRENT_BUILD = "10.0.2"
-local MAJOR, MINOR = "EditModeExpanded-1.0", 30
+local MAJOR, MINOR = "EditModeExpanded-1.0", 38
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
@@ -21,6 +21,7 @@ local firstCheckButtonPlaced = false
 local ENUM_EDITMODEACTIONBARSETTING_HIDEABLE = 10 -- Enum.EditModeActionBarSetting.Hideable = 10
 local ENUM_EDITMODEACTIONBARSETTING_MINIMAPPINNED = 11
 local ENUM_EDITMODEACTIONBARSETTING_CUSTOM = 12
+local ENUM_EDITMODEACTIONBARSETTING_CLAMPED = 13
 
 -- run OnLoad the first time RegisterFrame is called by an addon
 local f = {}
@@ -200,6 +201,11 @@ function lib:RegisterFrame(frame, name, db, anchorTo, anchorPoint)
             end
         end)
         registerFrameMovableWithArrowKeys(frame, anchorPoint, anchorTo)
+        
+        frame.Selection:HookScript("OnDragStop", function(self)
+            EditModeExpandedSystemSettingsDialog:UpdateSettings(frame)
+        end)
+        
         return
     end
     
@@ -271,7 +277,22 @@ function lib:RegisterFrame(frame, name, db, anchorTo, anchorPoint)
     registerFrameMovableWithArrowKeys(frame, anchorPoint, anchorTo)
     
     -- prevent the frame from going outside the screen boundaries
-    frame:SetClampedToScreen(true);
+    if db.clamped == nil then db.clamped = 1 end
+    if profilesInitialised and (db.clamped == 1) then
+        frame:SetClampedToScreen(true)
+    elseif profilesInitialised then
+        frame:SetClampedToScreen(false)
+    end
+    if not framesDialogs[frame.system] then framesDialogs[frame.system] = {} end
+    if not framesDialogsKeys[frame.system] then framesDialogsKeys[frame.system] = {} end
+    framesDialogsKeys[frame.system][ENUM_EDITMODEACTIONBARSETTING_CLAMPED] = true
+    table.insert(framesDialogs[frame.system],
+        {
+            setting = ENUM_EDITMODEACTIONBARSETTING_CLAMPED,
+            name = "Clamp to Screen",
+            type = Enum.EditModeSettingDisplayType.Checkbox,
+        }
+    )
     
     function frame.UpdateMagnetismRegistration() end
 
@@ -307,6 +328,8 @@ function lib:RegisterFrame(frame, name, db, anchorTo, anchorPoint)
         local x, y = getOffsetXY(frame, db.x, db.y)
         frame:ClearAllPoints()
         frame:SetPoint(anchorPoint, anchorTo, anchorPoint, x, y)
+        
+        EditModeExpandedSystemSettingsDialog:UpdateSettings(frame)
     end)
     
     function frame:ClearHighlight()
@@ -692,23 +715,31 @@ hooksecurefunc(EditModeManagerFrame, "ExitEditMode", function()
             frame:SetSize(originalSize[frame.system].x, originalSize[frame.system].y)
         end
     end
+    
+    for frameName in pairs(existingFrames) do
+        local frame = _G[frameName]
+        local systemID = getSystemID(frame)
+        if framesDB[systemID] and framesDB[systemID].settings and (framesDB[systemID].settings[ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] ~= nil) then
+            if (framesDB[systemID].settings[ENUM_EDITMODEACTIONBARSETTING_HIDEABLE] == 1) then
+                frame:Hide()
+            end
+        end
+    end
+    
     wipe(wasVisible)
     wipe(originalSize)
     EditModeExpandedSystemSettingsDialog:Hide()
 end)
 
 hooksecurefunc(EditModeManagerFrame, "SelectSystem", function(self, systemFrame)
+    if EditModeExpandedSystemSettingsDialog.attachedToSystem ~= systemFrame then
+        EditModeExpandedSystemSettingsDialog:Hide()
+    end
+    
     for _, frame in ipairs(frames) do
         if systemFrame ~= frame then
             frame:HighlightSystem()
         end
-    end
-    
-    local systemID = getSystemID(systemFrame)
-    
-    if (not systemID) or (not framesDB[systemID]) then
-        EditModeExpandedSystemSettingsDialog:Hide()
-        return
     end
 end)
 
@@ -812,7 +843,7 @@ hooksecurefunc(f, "OnLoad", function()
 	end)
     
     function EditModeExpandedSystemSettingsDialog:UpdateSettings(systemFrame)
-    	if systemFrame == self.attachedToSystem then
+        if systemFrame == self.attachedToSystem then
     		self:ReleaseAllNonSliders();
             local draggingSlider = self:ReleaseNonDraggingSliders();
     
@@ -901,6 +932,21 @@ hooksecurefunc(f, "OnLoad", function()
                                 else
                                     framesDB[systemID].settings[displayInfo.setting] = 0
                                     displayInfo.onUnchecked()
+                                end
+                            end)
+                        end
+                        
+                        if displayInfo.setting == ENUM_EDITMODEACTIONBARSETTING_CLAMPED then
+                            savedValue = framesDB[systemID].clamped
+                            if savedValue == nil then savedValue = 1 end
+                            settingFrame.Button:SetChecked(savedValue)
+                            settingFrame.Button:SetScript("OnClick", function()
+                                if settingFrame.Button:GetChecked() then
+                                    framesDB[systemID].clamped = 1
+                                    systemFrame:SetClampedToScreen(true)
+                                else
+                                    framesDB[systemID].clamped = 0
+                                    systemFrame:SetClampedToScreen(false)
                                 end
                             end)
                         end
@@ -1007,6 +1053,7 @@ do
                 db.y = nil
                 db.enabled = nil
                 db.settings = nil
+                db.clamped = nil
             end
             
             if db.minimap then
@@ -1060,6 +1107,12 @@ do
             -- only way I can find to un-select frames
             if EditModeManagerFrame.editModeActive and frame:IsShown() then
                 frame:HighlightSystem()
+            end
+            
+            if db.clamped == 1 then
+                frame:SetClampedToScreen(true)
+            else
+                frame:SetClampedToScreen(false)
             end
         end
         
@@ -1121,7 +1174,7 @@ function lib:RegisterMinimapPinnable(frame)
         icon:Hide(name)
     end)
     
-    hooksecurefunc(frame, "SetShown", function()
+    local function showHide()
         local db = framesDB[frame.system]
         if not db.minimap then db.minimap = {} end
         if not db.settings then db.settings = {} end
@@ -1134,7 +1187,12 @@ function lib:RegisterMinimapPinnable(frame)
             db.minimap.hide = true
             icon:Hide(name)
         end
+    end
+    
+    hooksecurefunc(frame, "SetShown", function()
+        showHide()
     end)
+    showHide()
     
     if not framesDialogs[frame.system] then framesDialogs[frame.system] = {} end
     if framesDialogsKeys[frame.system] and framesDialogsKeys[frame.system][ENUM_EDITMODEACTIONBARSETTING_MINIMAPPINNED] then return end
@@ -1182,6 +1240,8 @@ function getOffsetXY(frame, x, y)
         return x, y
     end
     
+    local scale = frame:GetScale()
+    
     local anchorPoint = frame.EMEanchorPoint or "BOTTOMLEFT"
     if anchorPoint == "BOTTOMLEFT" then
         local targetX, targetY = frame.EMEanchorTo:GetRect()
@@ -1193,7 +1253,7 @@ function getOffsetXY(frame, x, y)
     elseif anchorPoint == "TOPLEFT" then
         local targetX, targetY, _, targetHeight = frame.EMEanchorTo:GetRect()
         local _, height = frame:GetSize()
-        return x - targetX, (y+height) - (targetY+targetHeight)
+        return x - (targetX/scale), (y+height) - ((targetY+targetHeight)/scale)
     else -- TOPRIGHT
         local targetX, targetY, targetWidth, targetHeight = frame.EMEanchorTo:GetRect()
         local width, height = frame:GetSize()
@@ -1229,7 +1289,35 @@ function registerFrameMovableWithArrowKeys(frame, anchorPoint, anchorTo)
                 self.Selection:SetPropagateKeyboardInput(false);
                 
                 if existingFrames[frame:GetName()] then
-                    -- TODO: have to save changes into the native Edit Mode
+                    local layoutInfoCopy = CopyTable(EditModeManagerFrame.layoutInfo)
+                    local activeLayout = layoutInfoCopy.layouts[layoutInfoCopy.activeLayout]
+                    local a, b, c, d, e = self:GetPoint()
+                    for index, frameData in ipairs(activeLayout.systems) do
+                        local anchorInfo = frameData.anchorInfo
+                        if frame.EMELayoutInfoIDKnown then
+                            if (frame.EMELayoutInfoIDKnown.system == frameData.system) and (frame.EMELayoutInfoIDKnown.systemIndex == frameData.systemIndex) then
+                                anchorInfo.offsetX = new_x
+                                anchorInfo.offsetY = new_y
+                                break
+                            end
+                        end
+                        if 
+                            (anchorInfo.point == a) and 
+                            (anchorInfo.relativeTo == b:GetName()) and 
+                            (anchorInfo.relativePoint == c) and 
+                            (tonumber(string.format("%.3f", anchorInfo.offsetX)) == tonumber(string.format("%.3f", d))) and 
+                            (tonumber(string.format("%.3f", anchorInfo.offsetY)) == tonumber(string.format("%.3f", e))) 
+                        then
+                            frame.EMELayoutInfoIDKnown = {
+                                system = frameData.system,
+                                systemIndex = frameData.systemIndex,
+                            }
+                            anchorInfo.offsetX = new_x
+                            anchorInfo.offsetY = new_y
+                            break
+                        end
+                    end
+                    C_EditMode.SaveLayouts(layoutInfoCopy)
                 else
                     local db = framesDB[getSystemID(frame)]
                     db.x, db.y = new_x, new_y
