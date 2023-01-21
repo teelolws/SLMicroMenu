@@ -1,93 +1,11 @@
-if not (GetBuildInfo() == "10.0.2") then return end -- force update every patch incase of UI changes that cause problems and/or make this addon redundant!
-
-local db
-
-local incompatibleAddons = {
-    "Bartender4",
-    "Dominos",
-    }
-
-local defaults = {
-    global = {
-        EMEOptions = {
-            menu = true,
-        },
-        MicroButtonAndBagsBar = {},
-    }
-}
-
-local options = {
-    type = "group",
-    set = function(info, value) db.global.EMEOptions[info[#info]] = value end,
-    get = function(info) return db.global.EMEOptions[info[#info]] end,
-    args = {
-        menu = {
-            name = "Menu Bar",
-            desc = "Enables / Disables Edit Mode support for the Menu Bar. Disable if you are having compatibility issues with another addon.",
-            type = "toggle",
-        },
-    }
-}
-
-local lib = LibStub:GetLibrary("EditModeExpanded-1.0")
-local AceConfigDialog = LibStub("AceConfigDialog-3.0")
-local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
+if not (GetBuildInfo() == "10.0.5") then return end -- force update every patch incase of UI changes that cause problems and/or make this addon redundant!
 
 local f = CreateFrame("Frame")
 f:RegisterEvent("ADDON_LOADED")
 f:RegisterEvent("UNIT_PORTRAIT_UPDATE");
 f:RegisterEvent("PORTRAITS_UPDATED");
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:SetScript("OnEvent", function(self, event, arg1)
-    if (event == "ADDON_LOADED") and (arg1 == "SLMicroMenu") then
-        db = LibStub("AceDB-3.0"):New("SLMicroMenuADB", defaults)
-        
-        --
-        -- Start legacy db import - remove this eventually
-        --
-        local legacydb = LibStub("AceDB-3.0"):New("SLMicroMenuDB", defaults)
-        legacydb = legacydb.global
-        for buttonName, buttonData in pairs(legacydb) do
-            local isEmpty = true
-            if db.global[buttonName] and (type(db.global[buttonName]) == "table") then
-                for k, v in pairs(db.global[buttonName]) do
-                    isEmpty = false
-                    break
-                end
-            end
-            if isEmpty then
-                db.global[buttonName] = buttonData
-                legacydb[buttonName] = nil
-            end
-        end
-        --
-        -- End legacy db import
-        --
-
-        -- moving/resizing found to be incompatible
-        for _, addon in pairs(incompatibleAddons) do
-            if IsAddOnLoaded(addon) then return end
-        end
-        
-        AceConfigRegistry:RegisterOptionsTable("SLMicroMenu", options)
-        AceConfigDialog:AddToBlizOptions("SLMicroMenu")
-        
-        if not db.global.EMEOptions.menu then return end 
-        
-        lib:RegisterFrame(MicroButtonAndBagsBar, "Menu Bar", db.global.MicroButtonAndBagsBar)
-        lib:RegisterResizable(MicroButtonAndBagsBarMovable)
-        lib:RegisterResizable(EditModeExpandedBackpackBar)
-        lib:RegisterHideable(MicroButtonAndBagsBarMovable)
-        lib:RegisterHideable(EditModeExpandedBackpackBar)
-        
-        hooksecurefunc("MoveMicroButtons", function()
-            CharacterMicroButton:ClearAllPoints()
-            CharacterMicroButton:SetPoint("BOTTOMLEFT", MicroButtonAndBagsBarMovable, "BOTTOMLEFT", 7, 6)
-            LFDMicroButton:ClearAllPoints()
-            LFDMicroButton:SetPoint("BOTTOMLEFT", GuildMicroButton, "BOTTOMRIGHT", 1, 0)
-        end)
-    end
-end)
+f:SetScript("OnEvent", function(self, event, arg1) end)
 
 local prefix = "hud-microbutton-";
 	
@@ -237,7 +155,7 @@ end
 GuildMicroButton_UpdateTabard()
 C_Timer.After(4, GuildMicroButton_UpdateTabard)
 
-hooksecurefunc("UpdateMicroButtons", function()
+local function updateButtons()
     if ( CharacterFrame and CharacterFrame:IsShown() ) then
 		CharacterMicroButton_SetPushed();
 	else
@@ -251,4 +169,6 @@ hooksecurefunc("UpdateMicroButtons", function()
 		GuildMicroButtonTabard:SetPoint("TOPLEFT", 3, 1);
 		GuildMicroButtonTabard:SetAlpha(1);
     end
-end)
+end
+
+hooksecurefunc("UpdateMicroButtons", updateButtons)
