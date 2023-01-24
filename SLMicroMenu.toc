@@ -1,15 +1,7 @@
-## Interface: 100002
+## Interface: 100005
 ## Author: Teelo
 ## Title: Shadowlands Micro Menu
-## Version: 10.0-017
+## Version: 10.0-018
 ## X-Curse-Project-ID: 694767
-## SavedVariablesPerCharacter: SLMicroMenuDB
-## SavedVariables: SLMicroMenuADB
 
-libs\LibStub.lua
-libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
-libs\AceDB-3.0\AceDB-3.0.xml
-libs\AceGUI-3.0\AceGUI-3.0.xml
-libs\AceConfig-3.0\AceConfig-3.0.xml
-libs\EditModeExpanded-1.0\EditModeExpanded-1.0.xml
 SLMicroMenu.lua
