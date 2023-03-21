@@ -1,4 +1,4 @@
-if not (GetBuildInfo() == "10.0.5") then return end -- force update every patch incase of UI changes that cause problems and/or make this addon redundant!
+if not (GetBuildInfo() == "10.0.7") then return end -- force update every patch incase of UI changes that cause problems and/or make this addon redundant!
 
 local f = CreateFrame("Frame")
 f:RegisterEvent("ADDON_LOADED")
