@@ -13,6 +13,14 @@ local function replaceAtlases(self, name)
 	self:SetPushedAtlas(prefix..name.."-Down", true);
 	self:SetDisabledAtlas(prefix..name.."-Disabled", true);
 	self:SetHighlightAtlas("hud-microbutton-highlight");
+    
+    local normalTexture = self:GetNormalTexture();
+	if(normalTexture) then 
+		normalTexture:SetAlpha(1); 
+	end
+    if(self.FlashContent) then 
+		UIFrameFlashStop(self.FlashContent);
+	end
 end
 
 local buttons = {
@@ -92,9 +100,6 @@ MainMenuMicroButton:HookScript("OnUpdate", function(self, elapsed)
     local status = GetFileStreamingStatus();
         if ( status == 0 ) then
     	MainMenuBarDownload:Hide();
-    	self:SetNormalAtlas("hud-microbutton-MainMenu-Up", true);
-    	self:SetPushedAtlas("hud-microbutton-MainMenu-Down", true);
-    	self:SetDisabledAtlas("hud-microbutton-MainMenu-Disabled", true);
     else
     	self:SetNormalTexture("Interface\\Buttons\\UI-MicroButtonStreamDL-Up");
     	self:SetPushedTexture("Interface\\Buttons\\UI-MicroButtonStreamDL-Down");
@@ -108,7 +113,7 @@ MainMenuMicroButton:HookScript("OnUpdate", function(self, elapsed)
     	end
     	MainMenuBarDownload:Show();
     end
-    self:SetHighlightAtlas("hud-microbutton-highlight")
+    replaceAllAtlases()
 end)
 
 CreateFrame("Frame", "GuildMicroButtonTabard", GuildMicroButton)

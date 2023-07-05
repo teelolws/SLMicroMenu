@@ -1,7 +1,7 @@
-## Interface: 100100
+## Interface: 100105
 ## Author: Teelo
 ## Title: Shadowlands Micro Menu
-## Version: 10.1-001
+## Version: 10.1-002
 ## X-Curse-Project-ID: 694767
 ## IconTexture: Interface\HELPFRAME\HelpIcon-KnowledgeBase.blp
 
