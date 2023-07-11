@@ -136,24 +136,25 @@ local function GuildMicroButton_UpdateTabard()
 	-- switch textures if the guild has a custom tabard
 	local emblemFilename = select(10, GetGuildLogoInfo());
 	if ( emblemFilename ) then
-		if ( not tabard:IsShown() ) then
-            local button = GuildMicroButton;
-			button:SetNormalAtlas("hud-microbutton-Character-Up", true);
-			button:SetPushedAtlas("hud-microbutton-Character-Down", true);
+		--if ( not tabard:IsShown() ) then
+			self:SetNormalAtlas("hud-microbutton-Character-Up", true);
+			self:SetPushedAtlas("hud-microbutton-Character-Down", true);
+            self:GetNormalTexture():SetVertexColor(1, 1, 1)
+            self:GetPushedTexture():SetVertexColor(1, 1, 1)
+            self.Emblem:Hide()
+            self.HighlightEmblem:Hide()
 			-- no need to change disabled texture, should always be available if you're in a guild
 			tabard:Show();
-		end
+		--end
         SetSmallGuildTabardTextures("player", tabard.emblem, tabard.background);
 	else
 		if ( tabard:IsShown() ) then
-			local button = GuildMicroButton;
-			button:SetNormalAtlas("hud-microbutton-Socials-Up", true);
-			button:SetPushedAtlas("hud-microbutton-Socials-Down", true);
-			button:SetDisabledAtlas("hud-microbutton-Socials-Disabled", true);
+			self:SetNormalAtlas("hud-microbutton-Socials-Up", true);
+			self:SetPushedAtlas("hud-microbutton-Socials-Down", true);
+			self:SetDisabledAtlas("hud-microbutton-Socials-Disabled", true);
 			tabard:Hide();
 		end
 	end
-	tabard.needsUpdate = nil;
 end
 GuildMicroButton_UpdateTabard()
 C_Timer.After(4, GuildMicroButton_UpdateTabard)
@@ -166,7 +167,7 @@ local function updateButtons()
 	end
     GuildMicroButton_UpdateTabard()
     if ( CommunitiesFrame and CommunitiesFrame:IsShown() ) or ( GuildFrame and GuildFrame:IsShown() ) then
-		GuildMicroButtonTabard:SetPoint("TOPLEFT", 2, 0);
+		GuildMicroButtonTabard:SetPoint("TOPLEFT", 0, -2);
 		GuildMicroButtonTabard:SetAlpha(0.70);
 	else
 		GuildMicroButtonTabard:SetPoint("TOPLEFT", 3, 1);
@@ -175,3 +176,9 @@ local function updateButtons()
 end
 
 hooksecurefunc("UpdateMicroButtons", updateButtons)
+hooksecurefunc(GuildMicroButton, "UpdateTabard", GuildMicroButton_UpdateTabard)
+
+hooksecurefunc(GuildMicroButton, "SetPushed", function()
+    GuildMicroButtonTabard:SetPoint("TOPLEFT", 0, -2);
+	GuildMicroButtonTabard:SetAlpha(0.70);
+end)
