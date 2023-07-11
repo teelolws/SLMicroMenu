@@ -9,8 +9,10 @@ local prefix = "hud-microbutton-";
 	
 local function replaceAtlases(self, name)
     -- code from 9.2 version of FrameXML\MainMenuBarMicroButtons.lua
-    self:SetNormalAtlas(prefix..name.."-Up", true);
-	self:SetPushedAtlas(prefix..name.."-Down", true);
+    if self ~= GuildMicroButton then
+        self:SetNormalAtlas(prefix..name.."-Up", true)
+        self:SetPushedAtlas(prefix..name.."-Down", true)
+    end
 	self:SetDisabledAtlas(prefix..name.."-Disabled", true);
 	self:SetHighlightAtlas("hud-microbutton-highlight");
     
