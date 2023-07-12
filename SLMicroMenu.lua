@@ -91,6 +91,9 @@ local function GuildMicroButton_UpdateTabard()
     local self = GuildMicroButton
 	local tabard = GuildMicroButtonTabard;
 
+    self:SetNormalAtlas("hud-microbutton-Guild-Up", true)
+    self:SetPushedAtlas("hud-microbutton-Guild-Down", true)
+
 	-- switch textures if the guild has a custom tabard
 	local emblemFilename = select(10, GetGuildLogoInfo());
 	if ( emblemFilename ) then
@@ -111,9 +114,6 @@ local function GuildMicroButton_UpdateTabard()
 			self:SetPushedAtlas("hud-microbutton-Socials-Down", true);
 			self:SetDisabledAtlas("hud-microbutton-Socials-Disabled", true);
 			tabard:Hide();
-        else
-            self:SetNormalAtlas("hud-microbutton-Guild-Up", true)
-            self:SetPushedAtlas("hud-microbutton-Guild-Down", true)
 		end
 	end
 end
