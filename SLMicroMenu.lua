@@ -39,59 +39,15 @@ local buttons = {
     {button = MainMenuMicroButton, name = "MainMenu"},
 }
 
-local texture = CharacterMicroButton:CreateTexture("MicroButtonPortrait", "OVERLAY")
-texture:SetPoint("TOP", 0, -6)
-texture:SetSize(10, 16)
-texture:SetTexCoord(0.2, 0.8, 0.0666, 0.9)
-
 local function replaceAllAtlases()
     for _, data in pairs(buttons) do
         replaceAtlases(data.button, data.name)
     end
-    SetPortraitTexture(MicroButtonPortrait, "player")
 end
 replaceAllAtlases()
 
 f:HookScript("OnEvent", function()
     replaceAllAtlases()
-end)
-
-CharacterMicroButton:HookScript("OnEvent", function()
-    SetPortraitTexture(MicroButtonPortrait, "player")
-end)
-
-local function CharacterMicroButton_SetPushed()
-    SetPortraitTexture(MicroButtonPortrait, "player")
-	MicroButtonPortrait:SetTexCoord(0.2666, 0.8666, 0, 0.8333);
-	MicroButtonPortrait:SetAlpha(0.5);
-	CharacterMicroButton:SetButtonState("PUSHED", true);
-end
-local function CharacterMicroButton_SetNormal()
-    SetPortraitTexture(MicroButtonPortrait, "player")
-	MicroButtonPortrait:SetTexCoord(0.2, 0.8, 0.0666, 0.9);
-	MicroButtonPortrait:SetAlpha(1.0);
-	CharacterMicroButton:SetButtonState("NORMAL");
-end
-
-CharacterMicroButton:HookScript("OnMouseDown", function(self)
-	if ( not KeybindFrames_InQuickKeybindMode() ) then
-		if ( self.down ) then
-            CharacterMicroButton_SetPushed();
-		else
-			
-		end
-	end
-end)
-CharacterMicroButton:HookScript("OnMouseUp", function(self, button)
-	if ( KeybindFrames_InQuickKeybindMode() ) then
-	else
-		if ( self.down ) then
-		elseif ( self:GetButtonState() == "NORMAL" ) then
-			CharacterMicroButton_SetNormal();
-		else
-			CharacterMicroButton_SetPushed();
-		end
-	end
 end)
 
 MainMenuMicroButton:CreateTexture("MainMenuBarDownload", "OVERLAY")
@@ -165,11 +121,6 @@ GuildMicroButton_UpdateTabard()
 C_Timer.After(4, GuildMicroButton_UpdateTabard)
 
 local function updateButtons()
-    if ( CharacterFrame and CharacterFrame:IsShown() ) then
-		CharacterMicroButton_SetPushed();
-	else
-		CharacterMicroButton_SetNormal();
-	end
     GuildMicroButton_UpdateTabard()
     if ( CommunitiesFrame and CommunitiesFrame:IsShown() ) or ( GuildFrame and GuildFrame:IsShown() ) then
 		GuildMicroButtonTabard:SetPoint("TOPLEFT", 0, -2);
