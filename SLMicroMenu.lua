@@ -9,12 +9,33 @@ local prefix = "hud-microbutton-";
 	
 local function replaceAtlases(self, name)
     -- code from 9.2 version of FrameXML\MainMenuBarMicroButtons.lua
-    if self ~= GuildMicroButton then
-        self:SetNormalAtlas(prefix..name.."-Up", true)
-        self:SetPushedAtlas(prefix..name.."-Down", true)
+    self:SetNormalAtlas(prefix..name.."-Up", true)
+    self:SetPushedAtlas(prefix..name.."-Down", true)
+    
+    if self == GuildMicroButton then
+        local tabard = GuildMicroButtonTabard;
+
+        -- switch textures if the guild has a custom tabard
+        local emblemFilename = select(10, GetGuildLogoInfo());
+        if ( emblemFilename ) then
+            self:SetNormalAtlas("hud-microbutton-Character-Up", true)
+            self:SetPushedAtlas("hud-microbutton-Character-Down", true)
+            self:GetNormalTexture():SetVertexColor(1, 1, 1)
+            self:GetPushedTexture():SetVertexColor(1, 1, 1)
+            self.Emblem:Hide()
+            self.HighlightEmblem:Hide()
+			tabard:Show()
+            SetSmallGuildTabardTextures("player", tabard.emblem, tabard.background)
+        else
+            self:SetNormalAtlas("hud-microbutton-Socials-Up", true)
+            self:SetPushedAtlas("hud-microbutton-Socials-Down", true)
+            self:SetDisabledAtlas("hud-microbutton-Socials-Disabled", true)
+            tabard:Hide()
+        end
     end
-	self:SetDisabledAtlas(prefix..name.."-Disabled", true);
-	self:SetHighlightAtlas("hud-microbutton-highlight");
+    
+	self:SetDisabledAtlas(prefix..name.."-Disabled", true)
+	self:SetHighlightAtlas("hud-microbutton-highlight")
     
     local normalTexture = self:GetNormalTexture();
 	if(normalTexture) then 
@@ -44,7 +65,6 @@ local function replaceAllAtlases()
         replaceAtlases(data.button, data.name)
     end
 end
-replaceAllAtlases()
 
 f:HookScript("OnEvent", function()
     replaceAllAtlases()
@@ -87,41 +107,8 @@ GuildMicroButtonTabardEmblem:SetMask("Interface\GuildFrame\GuildEmblems_01")
 GuildMicroButtonTabardEmblem:SetSize(14, 14)
 GuildMicroButtonTabardEmblem:SetPoint("CENTER", 0, 0)
 
-local function GuildMicroButton_UpdateTabard()
-    local self = GuildMicroButton
-	local tabard = GuildMicroButtonTabard;
-
-    self:SetNormalAtlas("hud-microbutton-Guild-Up", true)
-    self:SetPushedAtlas("hud-microbutton-Guild-Down", true)
-
-	-- switch textures if the guild has a custom tabard
-	local emblemFilename = select(10, GetGuildLogoInfo());
-	if ( emblemFilename ) then
-		--if ( not tabard:IsShown() ) then
-			self:SetNormalAtlas("hud-microbutton-Character-Up", true);
-			self:SetPushedAtlas("hud-microbutton-Character-Down", true);
-            self:GetNormalTexture():SetVertexColor(1, 1, 1)
-            self:GetPushedTexture():SetVertexColor(1, 1, 1)
-            self.Emblem:Hide()
-            self.HighlightEmblem:Hide()
-			-- no need to change disabled texture, should always be available if you're in a guild
-			tabard:Show();
-		--end
-        SetSmallGuildTabardTextures("player", tabard.emblem, tabard.background);
-	else
-		if ( tabard:IsShown() ) then
-			self:SetNormalAtlas("hud-microbutton-Socials-Up", true);
-			self:SetPushedAtlas("hud-microbutton-Socials-Down", true);
-			self:SetDisabledAtlas("hud-microbutton-Socials-Disabled", true);
-			tabard:Hide();
-		end
-	end
-end
-GuildMicroButton_UpdateTabard()
-C_Timer.After(4, GuildMicroButton_UpdateTabard)
-
+-- move tabard with button press
 local function updateButtons()
-    GuildMicroButton_UpdateTabard()
     if ( CommunitiesFrame and CommunitiesFrame:IsShown() ) or ( GuildFrame and GuildFrame:IsShown() ) then
 		GuildMicroButtonTabard:SetPoint("TOPLEFT", 0, -2);
 		GuildMicroButtonTabard:SetAlpha(0.70);
@@ -132,8 +119,8 @@ local function updateButtons()
 end
 
 hooksecurefunc("UpdateMicroButtons", updateButtons)
-hooksecurefunc(GuildMicroButton, "UpdateTabard", GuildMicroButton_UpdateTabard)
 
+-- this is needed because there is a slight delay between button press and guild frame being visible. Button appears pushed before the guild frame is visible, without this, the tabard doesn't move cleanly with the rest of the button.
 hooksecurefunc(GuildMicroButton, "SetPushed", function()
     GuildMicroButtonTabard:SetPoint("TOPLEFT", 0, -2);
 	GuildMicroButtonTabard:SetAlpha(0.70);
