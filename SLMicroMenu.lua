@@ -42,7 +42,7 @@ local function replaceAtlases(self, name)
 		normalTexture:SetAlpha(1); 
 	end
     if(self.FlashContent) then 
-		UIFrameFlashStop(self.FlashContent);
+		self.FlashContent:SetAtlas(prefix..name.."-Up", true)
 	end
 end
 
