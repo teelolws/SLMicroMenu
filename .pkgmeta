@@ -1,5 +1,8 @@
 package-as: SLMicroMenu
 
+move-folders:
+ SLMicroMenu/Source: SLMicroMenu
+
 ignore:
  - LICENCE.md
  - README.md
