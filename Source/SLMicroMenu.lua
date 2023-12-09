@@ -91,10 +91,13 @@ MainMenuMicroButton:HookScript("OnUpdate", function(self, elapsed)
     replaceAtlases(MainMenuMicroButton, "MainMenu")
 end)
 
+local eventTypes = {"OnEnter", "OnClick", "OnMouseDown", "OnMouseUp", "OnLeave"}
 for _, data in pairs(buttons) do
-    data.button:HookScript("OnEnter", function()
-        replaceAtlases(data.button, data.name)
-    end)
+    for _, eventType in pairs(eventTypes) do
+        data.button:HookScript(eventType, function()
+            replaceAtlases(data.button, data.name)
+        end)
+    end    
 end
 
 CreateFrame("Frame", "GuildMicroButtonTabard", GuildMicroButton)
