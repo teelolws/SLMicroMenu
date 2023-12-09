@@ -3,7 +3,6 @@ f:RegisterEvent("ADDON_LOADED")
 f:RegisterEvent("UNIT_PORTRAIT_UPDATE");
 f:RegisterEvent("PORTRAITS_UPDATED");
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:SetScript("OnEvent", function(self, event, arg1) end)
 
 local prefix = "hud-microbutton-";
 	
@@ -66,9 +65,7 @@ local function replaceAllAtlases()
     end
 end
 
-f:HookScript("OnEvent", function()
-    replaceAllAtlases()
-end)
+f:SetScript("OnEvent", replaceAllAtlases)
 
 MainMenuMicroButton:CreateTexture("MainMenuBarDownload", "OVERLAY")
 MainMenuBarDownload:SetPoint("BOTTOM", "MainMenuMicroButton", "BOTTOM", 0, 7)
@@ -91,8 +88,14 @@ MainMenuMicroButton:HookScript("OnUpdate", function(self, elapsed)
     	end
     	MainMenuBarDownload:Show();
     end
-    replaceAllAtlases()
+    replaceAtlases(MainMenuMicroButton, "MainMenu")
 end)
+
+for _, data in pairs(buttons) do
+    data.button:HookScript("OnEnter", function()
+        replaceAtlases(data.button, data.name)
+    end)
+end
 
 CreateFrame("Frame", "GuildMicroButtonTabard", GuildMicroButton)
 GuildMicroButtonTabard:SetPoint("TOPLEFT", 3, 1)
