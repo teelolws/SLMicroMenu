@@ -97,7 +97,9 @@ for _, data in pairs(buttons) do
         data.button:HookScript(eventType, function()
             replaceAtlases(data.button, data.name)
         end)
-    end    
+    end
+    hooksecurefunc(data.button, "SetPushed", replaceAllAtlases)
+    hooksecurefunc(data.button, "SetNormal", replaceAllAtlases)    
 end
 
 CreateFrame("Frame", "GuildMicroButtonTabard", GuildMicroButton)
