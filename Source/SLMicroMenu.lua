@@ -47,8 +47,8 @@ end
 
 local buttons = {
     {button = CharacterMicroButton, name = "Character"},
-    {button = SpellbookMicroButton, name = "Spellbook"},
-    {button = TalentMicroButton, name = "Talents"},
+    {button = ProfessionMicroButton, name = "Spellbook"},
+    {button = PlayerSpellsMicroButton, name = "Talents"},
     {button = AchievementMicroButton, name = "Achievement"},
     {button = QuestLogMicroButton, name = "Quest"},
     {button = GuildMicroButton, name = "Socials"},
