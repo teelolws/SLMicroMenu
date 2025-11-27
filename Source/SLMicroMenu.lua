@@ -1,12 +1,43 @@
+local addonName, addon = ...
+
 local f = CreateFrame("Frame")
 f:RegisterEvent("ADDON_LOADED")
 f:RegisterEvent("UNIT_PORTRAIT_UPDATE");
 f:RegisterEvent("PORTRAITS_UPDATED");
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-local prefix = "hud-microbutton-";
+--
+-- Begin code directly imported from MicroMenu.lua in EditModeExpanded
+-- Remember to delete "if not SLSkinEnabled then return end"
+--
+local prefix = "hud-microbutton-"
 	
+local function housingChangeTextureSizes(texture)
+    texture:SetAlpha(1)
+    texture:SetSize(28, 36)
+    texture:SetTexCoord(0, 1, 0.36, 1)
+end
+
 local function replaceAtlases(self, name)
+    self:SetHighlightAtlas("hud-microbutton-highlight")
+    
+    -- Housing button did not exist in Shadowlands, so using custom textures
+    if self == HousingMicroButton then
+        local path = "Interface\\AddOns\\"..addonName.."\\textures\\UI-MicroButton-Housing-"
+        self:SetNormalTexture(path.."Up")
+        self:SetPushedTexture(path.."Down")
+        self:SetDisabledTexture(path.."Disabled")
+        
+        housingChangeTextureSizes(self:GetNormalTexture())
+        housingChangeTextureSizes(self:GetPushedTexture())
+        housingChangeTextureSizes(self:GetDisabledTexture())
+        
+        -- May not be needed, as of Midnight beta does not seem to change anything
+        --self.FlashContent:SetAtlas(prefix.."CharacterInfo-Up", true)
+        
+        return
+    end
+    
     -- code from 9.2 version of FrameXML\MainMenuBarMicroButtons.lua
     self:SetNormalAtlas(prefix..name.."-Up", true)
     self:SetPushedAtlas(prefix..name.."-Down", true)
@@ -34,7 +65,6 @@ local function replaceAtlases(self, name)
     end
     
 	self:SetDisabledAtlas(prefix..name.."-Disabled", true)
-	self:SetHighlightAtlas("hud-microbutton-highlight")
     
     local normalTexture = self:GetNormalTexture();
 	if(normalTexture) then 
@@ -57,6 +87,7 @@ local buttons = {
     {button = EJMicroButton, name = "EJ"},
     {button = StoreMicroButton, name = "BStore"},  
     {button = MainMenuMicroButton, name = "MainMenu"},
+    {button = HousingMicroButton},
 }
 
 local function replaceAllAtlases()
@@ -65,11 +96,10 @@ local function replaceAllAtlases()
     end
 end
 
-f:SetScript("OnEvent", replaceAllAtlases)
-
 MainMenuMicroButton:CreateTexture("MainMenuBarDownload", "OVERLAY")
 MainMenuBarDownload:SetPoint("BOTTOM", "MainMenuMicroButton", "BOTTOM", 0, 7)
 MainMenuBarDownload:SetSize(28, 28)
+MainMenuBarDownload:Hide()
 
 MainMenuMicroButton:HookScript("OnUpdate", function(self, elapsed)
     local status = GetFileStreamingStatus();
@@ -99,12 +129,13 @@ for _, data in pairs(buttons) do
         end)
     end
     hooksecurefunc(data.button, "SetPushed", replaceAllAtlases)
-    hooksecurefunc(data.button, "SetNormal", replaceAllAtlases)    
+    hooksecurefunc(data.button, "SetNormal", replaceAllAtlases)
 end
 
 CreateFrame("Frame", "GuildMicroButtonTabard", GuildMicroButton)
 GuildMicroButtonTabard:SetPoint("TOPLEFT", 3, 1)
 GuildMicroButtonTabard:SetPoint("BOTTOMRIGHT", -3, -1)
+GuildMicroButtonTabard:Hide()
 
 GuildMicroButtonTabard.background = GuildMicroButtonTabard:CreateTexture("GuildMicroButtonTabardBackground", "ARTWORK")
 GuildMicroButtonTabardBackground:SetAtlas("hud-microbutton-Guild-Banner", true)
@@ -133,3 +164,9 @@ hooksecurefunc(GuildMicroButton, "SetPushed", function()
     GuildMicroButtonTabard:SetPoint("TOPLEFT", 0, -2);
 	GuildMicroButtonTabard:SetAlpha(0.70);
 end)
+
+--
+-- End code directly imported from EditModeExpanded
+--
+
+f:SetScript("OnEvent", replaceAllAtlases)

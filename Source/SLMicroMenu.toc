@@ -1,4 +1,4 @@
-## Interface: 110205
+## Interface: 110207
 ## Author: Teelo
 ## Title: Shadowlands Micro Menu
 ## Version: @project-version@
